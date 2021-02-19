@@ -1,0 +1,44 @@
+#create index
+CREATE INDEX fighter_index FOR (f:fighter) ON (f.name)
+
+#drop projections
+CALL gds.graph.drop('male_fights')
+CALL gds.graph.drop('female_fights')
+
+#drop index
+DROP INDEX fighter_index
+
+
+#Fighters that beat Conor
+MATCH (f1:fighter) -[r:lose_to]-> (f2:fighter)
+WHERE f1.name = 'Conor McGregor'
+RETURN *;
+
+#Fighters names, date of fight, and division that beat Conor
+MATCH (f1:fighter {name:'Conor McGregor'}) -[r:lose_to]-> (f2:fighter)
+RETURN f2.name, r.date, r.division;
+
+#Fighters that beat the fighters that beat connor
+MATCH (f1:fighter {name:'Conor McGregor'}) -[r1:lose_to]-> (f2:fighter)-[r2:lose_to]->(f3:fighter)
+return f2, f3=, r2;
+
+#Fighters that beat the fighters that beat conor in a table
+MATCH (f1:fighter {name:'Conor McGregor'}) -[r1:lose_to]-> (f2:fighter)-[r2:lose_to]->(f3:fighter)
+return f2.name, f3.name, r2.date;
+
+
+#component value counts
+match (f:fighter {gender:'Female'}) 
+return f.ff_component_id, count(distinct f.name) 
+order by 2 desc
+
+
+#visualize components
+match (f:fighter) 
+where f.ff_component_id in [0, 16]
+return f;
+
+#obtain fighters in a component
+match (f:fighter) 
+where f.ff_component_id = 0
+return f.name;
